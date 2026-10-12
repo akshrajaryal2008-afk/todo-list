@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My To-Do App</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <main class="todo-container">
+        <div class="top">
+            <div class="eyebrow">DAILY PLANNER</div>
+            <h1>My To-Do List</h1>
+            <p class="subtitle">Small steps make big progress.</p>
+        </div>
+
+        <form method="POST" class="add-form">
+            {% csrf_token %}
+            <input type="text" name="title" maxlength="200"
+                   placeholder="What do you need to do?" required>
+            <button type="submit" name="add_task" class="add-button">+</button>
+        </form>
+
+        <div class="list-heading">
+            <h2>Your tasks</h2>
+            <span class="count">{{ task_count }} total</span>
+        </div>
+
+        <section class="task-list">
+            {% for todo in todos %}
+            <article class="task">
+                <span class="task-dot"></span>
+                <span class="task-title" id="text-{{ todo.id }}">{{ todo.title }}</span>
+
+                <form method="POST" id="edit-{{ todo.id }}" class="edit-form" hidden>
+                    {% csrf_token %}
+                    <input type="hidden" name="task_id" value="{{ todo.id }}">
+                    <input type="text" name="new_title" value="{{ todo.title }}"
+                           maxlength="200" required aria-label="Edit task">
+                    <button type="submit" name="edit_task" class="save-button">Save</button>
+                </form>
+
+                <div class="actions" id="actions-{{ todo.id }}">
+                    <button type="button" class="edit-button"
+                            onclick="enableEdit({{ todo.id }})">Edit</button>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="task_id" value="{{ todo.id }}">
+                        <button type="submit" name="delete_task" class="delete-button"
+                                onclick="return confirm('Delete this task?')">Delete</button>
+                    </form>
+                </div>
+            </article>
+            {% empty %}
+            <div class="empty-state">
+                <div class="empty-icon">✓</div>
+                <h3>You're all caught up!</h3>
+                <p>Add a task above to get started.</p>
+            </div>
+            {% endfor %}
+        </section>
+
+        <footer class="footer">
+            <span>Keep going, you've got this.</span>
+            {% if todos %}
+            <form method="POST">
+                {% csrf_token %}
+                <button type="submit" name="clear_all" class="clear-button"
+                        onclick="return confirm('Delete all tasks?')">Clear all</button>
+            </form>
+            {% endif %}
+        </footer>
+    </main>
+
+    <script>
+        function enableEdit(id) {
+            document.getElementById("text-" + id).hidden = true;
+            document.getElementById("actions-" + id).hidden = true;
+            document.getElementById("edit-" + id).hidden = false;
+            document.querySelector("#edit-" + id + " input[name='new_title']").focus();
+        }
+    </script>
+</body>
+</html>
